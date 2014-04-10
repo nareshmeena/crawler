@@ -1,10 +1,2 @@
-org.gbif.crawler
-org.gbif.crawler.client
-org.gbif.crawler.exception
-org.gbif.crawler.protocol
-org.gbif.crawler.protocol.biocase
-org.gbif.crawler.protocol.digir
-org.gbif.crawler.protocol.tapir
-org.gbif.crawler.retry
-org.gbif.crawler.strategy
-org.gbif.crawler.util
+org.gbif.crawler.ws.client
+org.gbif.crawler.ws.client.guice
