@@ -1,5 +1,0 @@
-org.gbif.crawler.dwca
-org.gbif.crawler.dwca.fragmenter
-org.gbif.crawler.dwca.util
-org.gbif.crawler.dwca.validator
-org.gbif.crawler.xml.crawlserver.util
