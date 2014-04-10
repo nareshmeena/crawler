@@ -1,13 +1,1 @@
 org.gbif.crawler
-org.gbif.crawler.client
-org.gbif.crawler.dwca
-org.gbif.crawler.dwca.fragmenter
-org.gbif.crawler.dwca.util
-org.gbif.crawler.dwca.validator
-org.gbif.crawler.protocol
-org.gbif.crawler.protocol.biocase
-org.gbif.crawler.protocol.digir
-org.gbif.crawler.protocol.tapir
-org.gbif.crawler.retry
-org.gbif.crawler.strategy
-org.gbif.crawler.xml.crawlserver.util
