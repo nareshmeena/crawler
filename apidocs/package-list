@@ -1,2 +1,2 @@
-org.gbif.crawler.ws
-org.gbif.crawler.ws.guice
+org.gbif.crawler.ws.client
+org.gbif.crawler.ws.client.guice
