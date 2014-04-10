@@ -3,7 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-    <title>Crawler :: Mother POM - Dependency Information</title>
+    <title>Crawler :: Coordinator - Dependency Information</title>
     <style type="text/css" media="all">
       @import url("./css/maven-base.css");
       @import url("./css/maven-theme.css");
@@ -17,7 +17,7 @@
   <body class="composite">
     <div id="banner">
                     <div id="bannerLeft">
-                Crawler :: Mother POM
+                Crawler :: Coordinator
                 </div>
                     <div class="clear">
         <hr/>
@@ -30,7 +30,7 @@
         <span id="publishDate">Last Published: 2014-04-10</span>
                   &nbsp;| <span id="projectVersion">Version: 0.4-SNAPSHOT</span>
                       </div>
-            <div class="xright">                    <a href="./" title="Crawler :: Mother POM">Crawler :: Mother POM</a>
+            <div class="xright">                    <a href="./" title="Crawler :: Coordinator">Crawler :: Coordinator</a>
               
                     
       </div>
@@ -42,27 +42,15 @@
       <div id="navcolumn">
              
                     
-                                          <h5>Modules</h5>
+                                <h5>Parent Project</h5>
                   <ul>
                   <li class="none">
-                          <a href="crawler-coordinator/index.html" title="Crawler :: Coordinator">Crawler :: Coordinator</a>
-            </li>
-                  <li class="none">
-                          <a href="crawler/index.html" title="Crawler :: Crawler">Crawler :: Crawler</a>
-            </li>
-                  <li class="none">
-                          <a href="crawler-cli/index.html" title="Crawler :: CLI">Crawler :: CLI</a>
-            </li>
-                  <li class="none">
-                          <a href="crawler-ws/index.html" title="Crawler :: Web service">Crawler :: Web service</a>
-            </li>
-                  <li class="none">
-                          <a href="crawler-ws-client/index.html" title="Crawler :: Web service client">Crawler :: Web service client</a>
+                          <a href="../index.html" title="Crawler :: Mother POM">Crawler :: Mother POM</a>
             </li>
           </ul>
                        <h5>Project Documentation</h5>
                   <ul>
-                                                                                                                                                                                                                                                                                                                                                            <li class="expanded">
+                                                                                                                                                                                                                                                                                                                                          <li class="expanded">
                           <a href="project-info.html" title="Project Information">Project Information</a>
                     <ul>
                       <li class="none">
@@ -99,9 +87,6 @@
                           <a href="license.html" title="Project License">Project License</a>
             </li>
                       <li class="none">
-                          <a href="modules.html" title="Project Modules">Project Modules</a>
-            </li>
-                      <li class="none">
                           <a href="dependency-management.html" title="Dependency Management">Dependency Management</a>
             </li>
                       <li class="none">
@@ -135,38 +120,37 @@
 <div class="source">
 <pre>&lt;dependency&gt;
   &lt;groupId&gt;org.gbif.crawler&lt;/groupId&gt;
-  &lt;artifactId&gt;crawler-motherpom&lt;/artifactId&gt;
+  &lt;artifactId&gt;crawler-coordinator&lt;/artifactId&gt;
   &lt;version&gt;0.4-SNAPSHOT&lt;/version&gt;
-  &lt;type&gt;pom&lt;/type&gt;
 &lt;/dependency&gt;</pre></div></div>
 <div class="section">
 <h3>Apache Buildr<a name="Apache_Buildr"></a></h3><a name="Apache_Buildr"></a>
 <div class="source">
-<pre>'org.gbif.crawler:crawler-motherpom:pom:0.4-SNAPSHOT'</pre></div></div>
+<pre>'org.gbif.crawler:crawler-coordinator:jar:0.4-SNAPSHOT'</pre></div></div>
 <div class="section">
 <h3>Apache Ant<a name="Apache_Ant"></a></h3><a name="Apache_Ant"></a>
 <div class="source">
-<pre>&lt;dependency org=&quot;org.gbif.crawler&quot; name=&quot;crawler-motherpom&quot; rev=&quot;0.4-SNAPSHOT&quot;&gt;
-  &lt;artifact name=&quot;crawler-motherpom&quot; type=&quot;pom&quot; /&gt;
+<pre>&lt;dependency org=&quot;org.gbif.crawler&quot; name=&quot;crawler-coordinator&quot; rev=&quot;0.4-SNAPSHOT&quot;&gt;
+  &lt;artifact name=&quot;crawler-coordinator&quot; type=&quot;jar&quot; /&gt;
 &lt;/dependency&gt;</pre></div></div>
 <div class="section">
 <h3>Groovy Grape<a name="Groovy_Grape"></a></h3><a name="Groovy_Grape"></a>
 <div class="source">
 <pre>@Grapes(
-@Grab(group='org.gbif.crawler', module='crawler-motherpom', version='0.4-SNAPSHOT')
+@Grab(group='org.gbif.crawler', module='crawler-coordinator', version='0.4-SNAPSHOT')
 )</pre></div></div>
 <div class="section">
 <h3>Grails<a name="Grails"></a></h3><a name="Grails"></a>
 <div class="source">
-<pre>compile 'org.gbif.crawler:crawler-motherpom:0.4-SNAPSHOT'</pre></div></div>
+<pre>compile 'org.gbif.crawler:crawler-coordinator:0.4-SNAPSHOT'</pre></div></div>
 <div class="section">
 <h3>Leiningen<a name="Leiningen"></a></h3><a name="Leiningen"></a>
 <div class="source">
-<pre>[org.gbif.crawler/crawler-motherpom &quot;0.4-SNAPSHOT&quot;]</pre></div></div>
+<pre>[org.gbif.crawler/crawler-coordinator &quot;0.4-SNAPSHOT&quot;]</pre></div></div>
 <div class="section">
 <h3>SBT<a name="SBT"></a></h3><a name="SBT"></a>
 <div class="source">
-<pre>libraryDependencies += &quot;org.gbif.crawler&quot; %% &quot;crawler-motherpom&quot; % &quot;0.4-SNAPSHOT&quot;</pre></div></div></div>
+<pre>libraryDependencies += &quot;org.gbif.crawler&quot; %% &quot;crawler-coordinator&quot; % &quot;0.4-SNAPSHOT&quot;</pre></div></div></div>
       </div>
     </div>
     <div class="clear">
