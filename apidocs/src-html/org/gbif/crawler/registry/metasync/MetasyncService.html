@@ -1,0 +1,166 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.crawler.registry.metasync;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.gbif.api.service.registry.DatasetService;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.api.service.registry.InstallationService;<a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.gbif.api.service.registry.MetasyncHistoryService;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.gbif.common.messaging.AbstractMessageCallback;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.gbif.common.messaging.MessageListener;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.gbif.common.messaging.api.messages.StartMetasyncMessage;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.gbif.registry.metasync.MetadataSynchroniserImpl;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.gbif.registry.metasync.api.MetadataSynchroniser;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.gbif.registry.metasync.api.SyncResult;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.gbif.registry.metasync.protocols.biocase.BiocaseMetadataSynchroniser;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.gbif.registry.metasync.protocols.digir.DigirMetadataSynchroniser;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.gbif.registry.metasync.protocols.tapir.TapirMetadataSynchroniser;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.gbif.registry.metasync.resulthandler.DebugHandler;<a name="line.15"></a>
+<span class="sourceLineNo">016</span>import org.gbif.registry.metasync.resulthandler.RegistryUpdater;<a name="line.16"></a>
+<span class="sourceLineNo">017</span>import org.gbif.registry.metasync.util.HttpClientFactory;<a name="line.17"></a>
+<span class="sourceLineNo">018</span>import org.gbif.registry.ws.client.guice.RegistryWsClientModule;<a name="line.18"></a>
+<span class="sourceLineNo">019</span>import org.gbif.ws.client.guice.SingleUserAuthModule;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>import java.util.Properties;<a name="line.21"></a>
+<span class="sourceLineNo">022</span>import java.util.concurrent.TimeUnit;<a name="line.22"></a>
+<span class="sourceLineNo">023</span><a name="line.23"></a>
+<span class="sourceLineNo">024</span>import com.google.common.collect.ImmutableList;<a name="line.24"></a>
+<span class="sourceLineNo">025</span>import com.google.common.util.concurrent.AbstractIdleService;<a name="line.25"></a>
+<span class="sourceLineNo">026</span>import com.google.inject.Guice;<a name="line.26"></a>
+<span class="sourceLineNo">027</span>import com.google.inject.Injector;<a name="line.27"></a>
+<span class="sourceLineNo">028</span>import org.slf4j.Logger;<a name="line.28"></a>
+<span class="sourceLineNo">029</span>import org.slf4j.LoggerFactory;<a name="line.29"></a>
+<span class="sourceLineNo">030</span><a name="line.30"></a>
+<span class="sourceLineNo">031</span>public class MetasyncService extends AbstractIdleService {<a name="line.31"></a>
+<span class="sourceLineNo">032</span><a name="line.32"></a>
+<span class="sourceLineNo">033</span>  private static final Logger LOG = LoggerFactory.getLogger(MetasyncService.class);<a name="line.33"></a>
+<span class="sourceLineNo">034</span>  private final MetasyncConfiguration configuration;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>  private MessageListener listener;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>  public MetasyncService(MetasyncConfiguration configuration) {<a name="line.37"></a>
+<span class="sourceLineNo">038</span>    this.configuration = configuration;<a name="line.38"></a>
+<span class="sourceLineNo">039</span>  }<a name="line.39"></a>
+<span class="sourceLineNo">040</span><a name="line.40"></a>
+<span class="sourceLineNo">041</span>  @Override<a name="line.41"></a>
+<span class="sourceLineNo">042</span>  protected void startUp() throws Exception {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>    Properties props = new Properties();<a name="line.43"></a>
+<span class="sourceLineNo">044</span>    props.setProperty("registry.ws.url", configuration.registry.wsUrl);<a name="line.44"></a>
+<span class="sourceLineNo">045</span>    Injector injector = Guice.createInjector(new RegistryWsClientModule(props),<a name="line.45"></a>
+<span class="sourceLineNo">046</span>      new SingleUserAuthModule(configuration.registry.user, configuration.registry.password));<a name="line.46"></a>
+<span class="sourceLineNo">047</span><a name="line.47"></a>
+<span class="sourceLineNo">048</span>    DatasetService datasetService = injector.getInstance(DatasetService.class);<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    MetasyncHistoryService historyService = injector.getInstance(MetasyncHistoryService.class);<a name="line.49"></a>
+<span class="sourceLineNo">050</span>    RegistryUpdater registryUpdater = new RegistryUpdater(datasetService, historyService);<a name="line.50"></a>
+<span class="sourceLineNo">051</span>    InstallationService installationService = injector.getInstance(InstallationService.class);<a name="line.51"></a>
+<span class="sourceLineNo">052</span><a name="line.52"></a>
+<span class="sourceLineNo">053</span>    listener = new MessageListener(configuration.messaging.getConnectionParameters(), 1);<a name="line.53"></a>
+<span class="sourceLineNo">054</span>    listener.listen(configuration.queueName, configuration.threadCount,<a name="line.54"></a>
+<span class="sourceLineNo">055</span>      new MetasyncCallback(registryUpdater, installationService));<a name="line.55"></a>
+<span class="sourceLineNo">056</span>  }<a name="line.56"></a>
+<span class="sourceLineNo">057</span><a name="line.57"></a>
+<span class="sourceLineNo">058</span>  @Override<a name="line.58"></a>
+<span class="sourceLineNo">059</span>  protected void shutDown() throws Exception {<a name="line.59"></a>
+<span class="sourceLineNo">060</span>    listener.close();<a name="line.60"></a>
+<span class="sourceLineNo">061</span>  }<a name="line.61"></a>
+<span class="sourceLineNo">062</span><a name="line.62"></a>
+<span class="sourceLineNo">063</span>  private static class MetasyncCallback extends AbstractMessageCallback&lt;StartMetasyncMessage&gt; {<a name="line.63"></a>
+<span class="sourceLineNo">064</span><a name="line.64"></a>
+<span class="sourceLineNo">065</span>    private final RegistryUpdater registryUpdater;<a name="line.65"></a>
+<span class="sourceLineNo">066</span>    private final MetadataSynchroniser synchroniser;<a name="line.66"></a>
+<span class="sourceLineNo">067</span><a name="line.67"></a>
+<span class="sourceLineNo">068</span>    private MetasyncCallback(RegistryUpdater registryUpdater, InstallationService installationService) {<a name="line.68"></a>
+<span class="sourceLineNo">069</span>      this.registryUpdater = registryUpdater;<a name="line.69"></a>
+<span class="sourceLineNo">070</span><a name="line.70"></a>
+<span class="sourceLineNo">071</span>      HttpClientFactory clientFactory = new HttpClientFactory(120, TimeUnit.MINUTES);<a name="line.71"></a>
+<span class="sourceLineNo">072</span><a name="line.72"></a>
+<span class="sourceLineNo">073</span>      MetadataSynchroniserImpl newSynchroniser = new MetadataSynchroniserImpl(installationService);<a name="line.73"></a>
+<span class="sourceLineNo">074</span><a name="line.74"></a>
+<span class="sourceLineNo">075</span>      newSynchroniser.registerProtocolHandler(new DigirMetadataSynchroniser(clientFactory.provideHttpClient()));<a name="line.75"></a>
+<span class="sourceLineNo">076</span>      newSynchroniser.registerProtocolHandler(new TapirMetadataSynchroniser(clientFactory.provideHttpClient()));<a name="line.76"></a>
+<span class="sourceLineNo">077</span>      newSynchroniser.registerProtocolHandler(new BiocaseMetadataSynchroniser(clientFactory.provideHttpClient()));<a name="line.77"></a>
+<span class="sourceLineNo">078</span>      this.synchroniser = newSynchroniser;<a name="line.78"></a>
+<span class="sourceLineNo">079</span><a name="line.79"></a>
+<span class="sourceLineNo">080</span>    }<a name="line.80"></a>
+<span class="sourceLineNo">081</span><a name="line.81"></a>
+<span class="sourceLineNo">082</span>    @Override<a name="line.82"></a>
+<span class="sourceLineNo">083</span>    public void handleMessage(StartMetasyncMessage message) {<a name="line.83"></a>
+<span class="sourceLineNo">084</span>      SyncResult syncResult = synchroniser.synchroniseInstallation(message.getInstallationKey());<a name="line.84"></a>
+<span class="sourceLineNo">085</span>      LOG.info("Done syncing. Processing result.");<a name="line.85"></a>
+<span class="sourceLineNo">086</span>      DebugHandler.processResult(syncResult);<a name="line.86"></a>
+<span class="sourceLineNo">087</span><a name="line.87"></a>
+<span class="sourceLineNo">088</span>      registryUpdater.saveSyncResultsToRegistry(ImmutableList.of(syncResult));<a name="line.88"></a>
+<span class="sourceLineNo">089</span><a name="line.89"></a>
+<span class="sourceLineNo">090</span>    }<a name="line.90"></a>
+<span class="sourceLineNo">091</span><a name="line.91"></a>
+<span class="sourceLineNo">092</span>  }<a name="line.92"></a>
+<span class="sourceLineNo">093</span><a name="line.93"></a>
+<span class="sourceLineNo">094</span>}<a name="line.94"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

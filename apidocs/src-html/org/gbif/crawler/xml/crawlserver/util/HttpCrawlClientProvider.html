@@ -1,0 +1,118 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.crawler.xml.crawlserver.util;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.gbif.crawler.client.HttpCrawlClient;<a name="line.3"></a>
+<span class="sourceLineNo">004</span><a name="line.4"></a>
+<span class="sourceLineNo">005</span>import org.apache.http.client.HttpClient;<a name="line.5"></a>
+<span class="sourceLineNo">006</span>import org.apache.http.client.params.ClientPNames;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import org.apache.http.conn.scheme.PlainSocketFactory;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import org.apache.http.conn.scheme.Scheme;<a name="line.8"></a>
+<span class="sourceLineNo">009</span>import org.apache.http.conn.scheme.SchemeRegistry;<a name="line.9"></a>
+<span class="sourceLineNo">010</span>import org.apache.http.impl.client.DecompressingHttpClient;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.apache.http.impl.client.DefaultHttpClient;<a name="line.11"></a>
+<span class="sourceLineNo">012</span>import org.apache.http.impl.conn.PoolingClientConnectionManager;<a name="line.12"></a>
+<span class="sourceLineNo">013</span>import org.apache.http.params.BasicHttpParams;<a name="line.13"></a>
+<span class="sourceLineNo">014</span>import org.apache.http.params.HttpConnectionParams;<a name="line.14"></a>
+<span class="sourceLineNo">015</span>import org.apache.http.params.HttpParams;<a name="line.15"></a>
+<span class="sourceLineNo">016</span><a name="line.16"></a>
+<span class="sourceLineNo">017</span>public class HttpCrawlClientProvider {<a name="line.17"></a>
+<span class="sourceLineNo">018</span><a name="line.18"></a>
+<span class="sourceLineNo">019</span>  private static final int DEFAULT_HTTP_PORT = 80;<a name="line.19"></a>
+<span class="sourceLineNo">020</span><a name="line.20"></a>
+<span class="sourceLineNo">021</span>  private static final int CONNECTION_TIMEOUT_MSEC = 600000; // 10 mins<a name="line.21"></a>
+<span class="sourceLineNo">022</span>  private static final int MAX_TOTAL_CONNECTIONS = 500;<a name="line.22"></a>
+<span class="sourceLineNo">023</span>  private static final int MAX_TOTAL_PER_ROUTE = 20;<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>  public static HttpCrawlClient newHttpCrawlClient() {<a name="line.25"></a>
+<span class="sourceLineNo">026</span>    SchemeRegistry schemeRegistry = new SchemeRegistry();<a name="line.26"></a>
+<span class="sourceLineNo">027</span>    schemeRegistry.register(new Scheme("http", DEFAULT_HTTP_PORT, PlainSocketFactory.getSocketFactory()));<a name="line.27"></a>
+<span class="sourceLineNo">028</span><a name="line.28"></a>
+<span class="sourceLineNo">029</span>    PoolingClientConnectionManager connectionManager = new PoolingClientConnectionManager(schemeRegistry);<a name="line.29"></a>
+<span class="sourceLineNo">030</span>    connectionManager.setMaxTotal(MAX_TOTAL_CONNECTIONS);<a name="line.30"></a>
+<span class="sourceLineNo">031</span>    connectionManager.setDefaultMaxPerRoute(MAX_TOTAL_PER_ROUTE);<a name="line.31"></a>
+<span class="sourceLineNo">032</span><a name="line.32"></a>
+<span class="sourceLineNo">033</span>    HttpParams params = new BasicHttpParams();<a name="line.33"></a>
+<span class="sourceLineNo">034</span>    HttpConnectionParams.setConnectionTimeout(params, CONNECTION_TIMEOUT_MSEC);<a name="line.34"></a>
+<span class="sourceLineNo">035</span>    HttpConnectionParams.setSoTimeout(params, CONNECTION_TIMEOUT_MSEC);<a name="line.35"></a>
+<span class="sourceLineNo">036</span>    params.setLongParameter(ClientPNames.CONN_MANAGER_TIMEOUT, CONNECTION_TIMEOUT_MSEC);<a name="line.36"></a>
+<span class="sourceLineNo">037</span>    HttpClient httpClient = new DecompressingHttpClient(new DefaultHttpClient(connectionManager, params));<a name="line.37"></a>
+<span class="sourceLineNo">038</span><a name="line.38"></a>
+<span class="sourceLineNo">039</span>    return new HttpCrawlClient(connectionManager, httpClient);<a name="line.39"></a>
+<span class="sourceLineNo">040</span>  }<a name="line.40"></a>
+<span class="sourceLineNo">041</span><a name="line.41"></a>
+<span class="sourceLineNo">042</span>  private HttpCrawlClientProvider() {<a name="line.42"></a>
+<span class="sourceLineNo">043</span>    throw new UnsupportedOperationException("Can't initialize class");<a name="line.43"></a>
+<span class="sourceLineNo">044</span>  }<a name="line.44"></a>
+<span class="sourceLineNo">045</span><a name="line.45"></a>
+<span class="sourceLineNo">046</span>}<a name="line.46"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>

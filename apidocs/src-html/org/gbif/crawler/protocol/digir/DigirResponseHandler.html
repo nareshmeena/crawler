@@ -1,0 +1,147 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html lang="en">
+<head>
+<title>Source code</title>
+<link rel="stylesheet" type="text/css" href="../../../../../../stylesheet.css" title="Style">
+</head>
+<body>
+<div class="sourceContainer">
+<pre><span class="sourceLineNo">001</span>package org.gbif.crawler.protocol.digir;<a name="line.1"></a>
+<span class="sourceLineNo">002</span><a name="line.2"></a>
+<span class="sourceLineNo">003</span>import org.gbif.crawler.exception.FatalCrawlException;<a name="line.3"></a>
+<span class="sourceLineNo">004</span>import org.gbif.crawler.protocol.AbstractResponseHandler;<a name="line.4"></a>
+<span class="sourceLineNo">005</span><a name="line.5"></a>
+<span class="sourceLineNo">006</span>import javax.annotation.concurrent.NotThreadSafe;<a name="line.6"></a>
+<span class="sourceLineNo">007</span>import javax.xml.stream.XMLStreamConstants;<a name="line.7"></a>
+<span class="sourceLineNo">008</span>import javax.xml.stream.XMLStreamException;<a name="line.8"></a>
+<span class="sourceLineNo">009</span><a name="line.9"></a>
+<span class="sourceLineNo">010</span>import com.google.common.base.Optional;<a name="line.10"></a>
+<span class="sourceLineNo">011</span>import org.codehaus.stax2.XMLStreamReader2;<a name="line.11"></a>
+<span class="sourceLineNo">012</span><a name="line.12"></a>
+<span class="sourceLineNo">013</span>/**<a name="line.13"></a>
+<span class="sourceLineNo">014</span> * This class is not thread-safe.<a name="line.14"></a>
+<span class="sourceLineNo">015</span> * &lt;p/&gt;<a name="line.15"></a>
+<span class="sourceLineNo">016</span> * The latest &lt;a href="http://digir.sourceforge.net/schema/protocol/2003/1.0/digir.xsd"&gt;DiGIR XSD&lt;/a&gt; does not require<a name="line.16"></a>
+<span class="sourceLineNo">017</span> * any content or diagnostics elements.<a name="line.17"></a>
+<span class="sourceLineNo">018</span> * &lt;p/&gt;<a name="line.18"></a>
+<span class="sourceLineNo">019</span> * So with DiGIR it could be that we successfully parse a page and are in a valid state but don't know if we're at the<a name="line.19"></a>
+<span class="sourceLineNo">020</span> * end of the records or how many we got.<a name="line.20"></a>
+<span class="sourceLineNo">021</span> */<a name="line.21"></a>
+<span class="sourceLineNo">022</span>@NotThreadSafe<a name="line.22"></a>
+<span class="sourceLineNo">023</span>public class DigirResponseHandler extends AbstractResponseHandler {<a name="line.23"></a>
+<span class="sourceLineNo">024</span><a name="line.24"></a>
+<span class="sourceLineNo">025</span>  private static final String CONTENT_ELEMENT = "content";<a name="line.25"></a>
+<span class="sourceLineNo">026</span>  private static final String INFO_ELEMENT = "diagnostic";<a name="line.26"></a>
+<span class="sourceLineNo">027</span><a name="line.27"></a>
+<span class="sourceLineNo">028</span>  private static final String DIAGNOSITC_ELEMENT_ATTRIBUTE_NAME = "code";<a name="line.28"></a>
+<span class="sourceLineNo">029</span><a name="line.29"></a>
+<span class="sourceLineNo">030</span>  private static final String RESOURCE_NOT_FOUND = "RESOURCE_NOT_FOUND";<a name="line.30"></a>
+<span class="sourceLineNo">031</span>  private static final String RECORD_COUNT = "RECORD_COUNT";<a name="line.31"></a>
+<span class="sourceLineNo">032</span>  private static final String END_OF_RECORDS = "END_OF_RECORDS";<a name="line.32"></a>
+<span class="sourceLineNo">033</span><a name="line.33"></a>
+<span class="sourceLineNo">034</span>  private boolean insideContent;<a name="line.34"></a>
+<span class="sourceLineNo">035</span>  private boolean seenContent;<a name="line.35"></a>
+<span class="sourceLineNo">036</span><a name="line.36"></a>
+<span class="sourceLineNo">037</span>  @Override<a name="line.37"></a>
+<span class="sourceLineNo">038</span>  protected boolean shouldHash(XMLStreamReader2 reader) {<a name="line.38"></a>
+<span class="sourceLineNo">039</span>    if (isElement(reader, CONTENT_ELEMENT, true)) {<a name="line.39"></a>
+<span class="sourceLineNo">040</span>      insideContent = true;<a name="line.40"></a>
+<span class="sourceLineNo">041</span>      return false;<a name="line.41"></a>
+<span class="sourceLineNo">042</span>    }<a name="line.42"></a>
+<span class="sourceLineNo">043</span><a name="line.43"></a>
+<span class="sourceLineNo">044</span>    if (insideContent &amp;&amp; reader.getEventType() == XMLStreamConstants.START_ELEMENT) {<a name="line.44"></a>
+<span class="sourceLineNo">045</span>      seenContent = true;<a name="line.45"></a>
+<span class="sourceLineNo">046</span>    }<a name="line.46"></a>
+<span class="sourceLineNo">047</span><a name="line.47"></a>
+<span class="sourceLineNo">048</span>    // We found the end element which shouldn't be hashed either<a name="line.48"></a>
+<span class="sourceLineNo">049</span>    if (isElement(reader, CONTENT_ELEMENT, false)) {<a name="line.49"></a>
+<span class="sourceLineNo">050</span>      insideContent = false;<a name="line.50"></a>
+<span class="sourceLineNo">051</span>    }<a name="line.51"></a>
+<span class="sourceLineNo">052</span><a name="line.52"></a>
+<span class="sourceLineNo">053</span>    return insideContent &amp;&amp; seenContent;<a name="line.53"></a>
+<span class="sourceLineNo">054</span>  }<a name="line.54"></a>
+<span class="sourceLineNo">055</span><a name="line.55"></a>
+<span class="sourceLineNo">056</span>  @Override<a name="line.56"></a>
+<span class="sourceLineNo">057</span>  protected void initialize() {<a name="line.57"></a>
+<span class="sourceLineNo">058</span>    insideContent = false;<a name="line.58"></a>
+<span class="sourceLineNo">059</span>    seenContent = false;<a name="line.59"></a>
+<span class="sourceLineNo">060</span>  }<a name="line.60"></a>
+<span class="sourceLineNo">061</span><a name="line.61"></a>
+<span class="sourceLineNo">062</span>  @Override<a name="line.62"></a>
+<span class="sourceLineNo">063</span>  protected void process(XMLStreamReader2 reader) throws XMLStreamException, FatalCrawlException {<a name="line.63"></a>
+<span class="sourceLineNo">064</span>    if (isElement(reader, INFO_ELEMENT, true)) {<a name="line.64"></a>
+<span class="sourceLineNo">065</span>      if (reader.getAttributeValue(null, DIAGNOSITC_ELEMENT_ATTRIBUTE_NAME).equals(RECORD_COUNT)) {<a name="line.65"></a>
+<span class="sourceLineNo">066</span>        setRecordCount(Optional.of(reader.getElementAsInt()));<a name="line.66"></a>
+<span class="sourceLineNo">067</span>      } else if (reader.getAttributeValue(null, DIAGNOSITC_ELEMENT_ATTRIBUTE_NAME).equals(END_OF_RECORDS)) {<a name="line.67"></a>
+<span class="sourceLineNo">068</span>        setEndOfRecords(Optional.of(reader.getElementAsBoolean()));<a name="line.68"></a>
+<span class="sourceLineNo">069</span>      } else if (reader.getAttributeValue(null, DIAGNOSITC_ELEMENT_ATTRIBUTE_NAME).equals(RESOURCE_NOT_FOUND)) {<a name="line.69"></a>
+<span class="sourceLineNo">070</span>        throw new FatalCrawlException("Requested resource could not be found");<a name="line.70"></a>
+<span class="sourceLineNo">071</span>      }<a name="line.71"></a>
+<span class="sourceLineNo">072</span>    }<a name="line.72"></a>
+<span class="sourceLineNo">073</span>  }<a name="line.73"></a>
+<span class="sourceLineNo">074</span><a name="line.74"></a>
+<span class="sourceLineNo">075</span>}<a name="line.75"></a>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</pre>
+</div>
+</body>
+</html>
